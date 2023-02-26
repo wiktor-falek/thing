@@ -1,5 +1,6 @@
 import fetchPoeNinjaResource from "../helpers/fetchPoeNinjaResource.js";
 import type { PoeNinjaResource } from "../helpers/fetchPoeNinjaResource.js";
+import { writeFile } from "fs";
 
 type PoeNinjaStoreDataField =
   | "currency"
@@ -74,7 +75,7 @@ class PoeNinjaStore {
   }
 
   async fetchAll() {
-    const promises = [];
+    const promises: Array<Promise<any>> = [];
     for (let key of Object.keys(this.data)) {
       const resource = key[0].toUpperCase() + key.slice(1);
       const promise = this.fetchResource(resource as PoeNinjaResource);

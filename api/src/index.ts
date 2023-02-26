@@ -1,9 +1,25 @@
+import * as url from "url";
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+
 import express, { Request, Response } from "express";
 import cors from "cors";
 import cron from "node-cron";
 import PoeNinjaStore from "./stores/PoeNinjaStore.js";
+import { readFileSync } from "fs";
+import path from "path";
 
-PoeNinjaStore.fetchAll()
+process.env.NODE_ENV = process.env.NODE_ENV ?? "development";
+
+if (process.env.NODE_ENV === "production") {
+  PoeNinjaStore.fetchAll();
+} else {
+  // read from snapshot to avoid calling the poe.ninja
+  const buffer = readFileSync(
+    path.join(__dirname, "../poeNinjaDataSnapshot.json"),
+    "utf-8"
+  );
+  PoeNinjaStore.data = JSON.parse(buffer);
+}
 
 const app = express();
 app.use(cors());
