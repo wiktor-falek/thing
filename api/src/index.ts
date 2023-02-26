@@ -1,33 +1,21 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import cron from "node-cron";
+import PoeNinjaStore from "./stores/PoeNinjaStore.js";
+
+PoeNinjaStore.fetchAll()
 
 const app = express();
-
 app.use(cors());
 
-// TODO #2: encapsulate inside a class that will store and load the data
-const currentLeague = "Sanctum";
-const currencyOverviewType = "Currency";
-const resource = `https://poe.ninja/api/data/currencyoverview?league=${currentLeague}&type=${currencyOverviewType}`;
-
-let currencyData: any;
-
-const fetchResource = async () => {
-  const result = await fetch(resource, { method: "GET" });
-  const data = await result.json();
-  return data;
-};
-
-(async () => {
-  currencyData = await fetchResource();
-})();
-
 app.get("/currency", async (req: Request, res: Response) => {
-  if (currencyData == null) {
-    return res.status(500).json({ ok: false, message: "Shit hit the fan" });
+  const { currency } = PoeNinjaStore.data;
+  if (currency == null) {
+    return res
+      .status(500)
+      .json({ ok: false, message: "Missing data, try again later" });
   }
-  res.send({ mirror: currencyData.lines[0], divine: currencyData.lines[8] });
+  res.send({ mirror: currency.lines[0], divine: currency.lines[8] });
 });
 
 interface Client {
@@ -43,16 +31,12 @@ app.get("/events", function eventsHandler(req, res) {
   };
   res.writeHead(200, headers);
 
-  res.write(`data: hello\n\n`);
-
   const clientId = Date.now();
 
-  const newClient: Client = {
+  clients.push({
     id: clientId,
     response: res,
-  };
-
-  clients.push(newClient);
+  });
 
   console.log(`${clientId} Connection open`);
 
